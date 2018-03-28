@@ -83,7 +83,6 @@ public class Lexer {
         //o token sera um dos Symbol
         StringBuffer aux = new StringBuffer();
         while (Character.isDigit(input[tokenPos])) {
-            //concatenar esses digitos e concatenar eles
             aux = aux.append(input[tokenPos]); //vai concatenando o numero, ainda eh string
             tokenPos++;
         }
@@ -96,8 +95,16 @@ public class Lexer {
                     error.signal("estourou o numero int");
                 }
                 token = Symbol.INTLITERAL;
-            }else{
-            token = Symbol.Fl
+            } else {
+                aux = aux.append(input[tokenPos]); //concatena o ponto
+                tokenPos++;
+                //concatena o resto dos digitos
+                while (Character.isDigit(input[tokenPos])) {
+                    aux = aux.append(input[tokenPos]); 
+                    tokenPos++;
+                }
+
+                token = Symbol.FLOATLITERAL;
             }
 
         } else {
