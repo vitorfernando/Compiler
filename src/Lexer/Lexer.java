@@ -86,30 +86,58 @@ public class Lexer {
             aux = aux.append(input[tokenPos]); //vai concatenando o numero, ainda eh string
             tokenPos++;
         }
-
+        //aux eh um digito
         if (aux.length() > 0) {
-            if (input[tokenPos + 1] != '.') {
+            if (input[tokenPos] != '.') {
                 //converte string para inteiro
                 numberValue = Integer.parseInt(aux.toString());
                 if (numberValue > MaxValueInteger) {
                     error.signal("estourou o numero int");
                 }
                 token = Symbol.INTLITERAL;
+                //é um float 676767.67678
             } else {
                 aux = aux.append(input[tokenPos]); //concatena o ponto
                 tokenPos++;
+                int lenght = aux.length();
                 //concatena o resto dos digitos
                 while (Character.isDigit(input[tokenPos])) {
-                    aux = aux.append(input[tokenPos]); 
+                    aux = aux.append(input[tokenPos]);
                     tokenPos++;
                 }
+                if (aux.length() <= lenght) {
+                    error.signal("expressão de float mal escrita");
+                }
+                floatValue = Float.parseFloat(aux.toString());
+                token = Symbol.FLOATLITERAL;
+            }
+            //nao é um digito
+        } else {
+            //eh um float no formato .4455
+            if (input[tokenPos] == '.') {
+                aux = aux.append(input[tokenPos]); //concatena o ponto
+                tokenPos++;
+
+                //concatena o resto dos digitos
+                while (Character.isDigit(input[tokenPos])) {
+                    aux = aux.append(input[tokenPos]);
+                    tokenPos++;
+                }
+                if (aux.length() <= 0) {
+                    error.signal("expressão de float mal escrita");
+                }
+                floatValue = Float.parseFloat("0" + aux.toString());
 
                 token = Symbol.FLOATLITERAL;
             }
 
-        } else {
             while (Character.isLetter(input[tokenPos])) {
                 aux = aux.append(input[tokenPos]); //vai concatenando todas as letras, ainda eh string
+                tokenPos++;
+            }
+            
+            while (Character.isDigit(input[tokenPos])) {
+                aux = aux.append(input[tokenPos]);
                 tokenPos++;
             }
 
@@ -137,7 +165,25 @@ public class Lexer {
                         token = Symbol.MULT;
                         break;
                     case '=':
+                        token = Symbol.EQUAL;
+                        break;
+                    case ':':
+                        if (input[tokenPos + 1] != '=') {
+                            error.signal("erro lexico");
+                        }
                         token = Symbol.ASSIGN;
+                        break;
+                    case '<':
+                        token = Symbol.LT;
+                        break;
+                    case '>':
+                        token = Symbol.GT;
+                        break;
+                    case '(':
+                        token = Symbol.LPAR;
+                        break;
+                    case ')':
+                        token = Symbol.RPAR;
                         break;
                     case ',':
                         token = Symbol.COMMA;
@@ -199,10 +245,16 @@ public class Lexer {
     public char getCharValue() {
         return charValue;
     }
+
+    public float getFloatValue() {
+        return floatValue;
+    }
     // current token
     public Symbol token;
     private String stringValue;
     private int numberValue;
+    private float floatValue;
+
     private char charValue;
 
     private int tokenPos;
