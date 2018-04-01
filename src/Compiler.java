@@ -88,7 +88,7 @@ public class Compiler {
         }
         lexer.nextToken();
 
-        expr(); //verifica a expressao
+//        expr(); //verifica a expressao
 
         if (lexer.token != Symbol.SEMICOLON) {
             error.signal("ponto e virgula nao encontrado");
@@ -98,17 +98,17 @@ public class Compiler {
     }
 
     // Expr ::= Oper  Expr Expr  | Number | Variable
-    public void expr() {
-        if (lexer.token == Symbol.NUMBER || lexer.token == Symbol.IDENT) {
-            lexer.nextToken();
-        } else if (oper(lexer.token)) {
-            expr();
-            expr();
-        } else {
-            error.signal("expressao nao valida");
-        }
-
-    }
+//    public void expr() {
+//        if (lexer.token == Symbol.NUMBER || lexer.token == Symbol.IDENT) {
+//            lexer.nextToken();
+//        } else if (oper(lexer.token)) {
+//            expr();
+//            expr();
+//        } else {
+//            error.signal("expressao nao valida");
+//        }
+//
+//    }
 
     //verifica se o token eh um oper + - / *
     public boolean oper(Symbol token) {

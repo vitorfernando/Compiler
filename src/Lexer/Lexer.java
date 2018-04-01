@@ -89,14 +89,17 @@ public class Lexer {
         //aux eh um digito
         if (aux.length() > 0) {
             if (input[tokenPos] != '.') {
-                //converte string para inteiro
-                numberValue = Integer.parseInt(aux.toString());
-                if (numberValue > MaxValueInteger) {
-                    error.signal("estourou o numero int");
+                if (Character.isLetter(input[tokenPos])) {
+                    error.signal("identificador deve iniciar com uma letra");
+                } else {
+                    //converte string para inteiro
+                    numberValue = Integer.parseInt(aux.toString());
+                    if (numberValue > MaxValueInteger) {
+                        error.signal("estourou o numero int");
+                    }
+                    token = Symbol.INTLITERAL;
                 }
-                token = Symbol.INTLITERAL;
-                //é um float 676767.67678
-            } else {
+            } else {//é um float 676767.67678
                 aux = aux.append(input[tokenPos]); //concatena o ponto
                 tokenPos++;
                 int lenght = aux.length();
@@ -125,26 +128,29 @@ public class Lexer {
                 }
                 if (aux.length() <= 0) {
                     error.signal("expressão de float mal escrita");
+                } else {
+                    floatValue = Float.parseFloat("0" + aux.toString());
                 }
-                floatValue = Float.parseFloat("0" + aux.toString());
-
                 token = Symbol.FLOATLITERAL;
             }
 
             while (Character.isLetter(input[tokenPos])) {
                 aux = aux.append(input[tokenPos]); //vai concatenando todas as letras, ainda eh string
                 tokenPos++;
-            }
-            
-            while (Character.isDigit(input[tokenPos])) {
-                aux = aux.append(input[tokenPos]);
-                tokenPos++;
+                //concatena numeros apos a primeira letra se houverem
+                while (Character.isDigit(input[tokenPos])) {
+                    aux = aux.append(input[tokenPos]);
+                    tokenPos++;
+                }
             }
 
             if (aux.length() > 0) {
                 Symbol temp;
                 temp = keywordsTable.get(aux.toString()); //verifica na key word hash
                 if (temp == null) { //nao eh palavra
+                    if (aux.length() > 30) {
+                        error.signal("identificador com mais que 30 digitos");
+                    }
                     token = Symbol.IDENT;
                     stringValue = aux.toString();
                 } else {
