@@ -35,7 +35,9 @@ public enum Symbol {
     RPAR(")"),
     ASSIGN(":="),
     COMMA(","),
-    SEMICOLON(";");
+    SEMICOLON(";"),
+    DMARKS("\""),
+    MARKS("'");
 
     Symbol(String name) {
         this.name = name;

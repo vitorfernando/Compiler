@@ -58,7 +58,7 @@ public class Lexer {
     public void nextToken() {
         //pula espaços em branco, quebras de linhas e tabulações
         while (input[tokenPos] == ' '
-                || input[tokenPos] == '\n' || input[tokenPos] == '\t') {
+                || input[tokenPos] == '\n' || input[tokenPos] == '\t' || input[tokenPos] == '\r') {
             if (input[tokenPos] == '\n') {
                 lineNumber++;
             }
@@ -114,26 +114,23 @@ public class Lexer {
                 floatValue = Float.parseFloat(aux.toString());
                 token = Symbol.FLOATLITERAL;
             }
-            //nao é um digito
-        } else {
             //eh um float no formato .4455
-            if (input[tokenPos] == '.') {
-                aux = aux.append(input[tokenPos]); //concatena o ponto
+        } else if (input[tokenPos] == '.') {
+            aux = aux.append(input[tokenPos]); //concatena o ponto
+            tokenPos++;
+
+            //concatena o resto dos digitos
+            while (Character.isDigit(input[tokenPos])) {
+                aux = aux.append(input[tokenPos]);
                 tokenPos++;
-
-                //concatena o resto dos digitos
-                while (Character.isDigit(input[tokenPos])) {
-                    aux = aux.append(input[tokenPos]);
-                    tokenPos++;
-                }
-                if (aux.length() <= 0) {
-                    error.signal("expressão de float mal escrita");
-                } else {
-                    floatValue = Float.parseFloat("0" + aux.toString());
-                }
-                token = Symbol.FLOATLITERAL;
             }
-
+            if (aux.length() <= 0) {
+                error.signal("expressão de float mal escrita");
+            } else {
+                floatValue = Float.parseFloat("0" + aux.toString());
+            }
+            token = Symbol.FLOATLITERAL;
+        } else {     //nao é um digito
             while (Character.isLetter(input[tokenPos])) {
                 aux = aux.append(input[tokenPos]); //vai concatenando todas as letras, ainda eh string
                 tokenPos++;
@@ -146,7 +143,7 @@ public class Lexer {
 
             if (aux.length() > 0) {
                 Symbol temp;
-                temp = keywordsTable.get(aux.toString()); //verifica na key word hash
+                temp = keywordsTable.get(aux.toString().toLowerCase()); //verifica na key word hash
                 if (temp == null) { //nao eh palavra
                     if (aux.length() > 30) {
                         error.signal("identificador com mais que 30 digitos");
@@ -176,8 +173,10 @@ public class Lexer {
                     case ':':
                         if (input[tokenPos + 1] != '=') {
                             error.signal("erro lexico");
+                        } else {
+                            tokenPos++;
+                            token = Symbol.ASSIGN;
                         }
-                        token = Symbol.ASSIGN;
                         break;
                     case '<':
                         token = Symbol.LT;
@@ -197,16 +196,36 @@ public class Lexer {
                     case ';':
                         token = Symbol.SEMICOLON;
                         break;
+                    case '"':
+                        tokenPos++;
+
+                        StringBuffer str = new StringBuffer();
+                        while (input[tokenPos] != '"') {
+                            str = str.append(input[tokenPos]);
+                            tokenPos++;
+                        }
+
+                        if (str.length() > 0) {
+                            stringValue = str.toString();
+                        } else {
+                            stringValue = "";
+                        }
+                        token = Symbol.STRINGLITERAL;
+                        break;
+                    case '\'':
+                        token = Symbol.MARKS;
+                        break;
                     default:
+                        System.out.println(input[tokenPos]);
                         error.signal("erro lexico");
                 }
                 tokenPos++;
             }
         }
 
-        if (DEBUGLEXER) {
-            System.out.println(token.toString());
-        }
+//        if (DEBUGLEXER) {
+//            System.out.println(token.toString());
+//        }
         lastTokenPos = tokenPos - 1;
         System.out.println(token.toString());
     }
