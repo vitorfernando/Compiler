@@ -1,13 +1,6 @@
-/*
- Program ::= 'begin' VarDecList ';' AssignStatment 'end'
- VarDecList ::= Variable | Variable ',' VarDecList
- Variable ::= Letter {Letter}
- Letter ::= 'A' | 'B' | ... | 'Z' | 'a' | ... |'z'
- AssignStatment ::= Variable '=' Expr ';'
- Expr ::= Oper  Expr Expr  | Number
- Oper ::= '+' | '-' | '*' | '/'
- Number ::= Digit {Digit}
- Digit ::= '0'| '1' | ... | '9'
+/**
+ *
+ * @author vitor silva
  */
 package Lexer;
 
@@ -90,7 +83,7 @@ public class Lexer {
         if (aux.length() > 0) {
             if (input[tokenPos] != '.') {
                 if (Character.isLetter(input[tokenPos])) {
-                    error.signal("identificador deve iniciar com uma letra");
+                    error.signal("identificador deve iniciar com uma letra seguida de no máximo 30 letras ou numeros(ex: aaa3333dede44).");
                 } else {
                     //converte string para inteiro
                     numberValue = Integer.parseInt(aux.toString());
@@ -109,23 +102,25 @@ public class Lexer {
                     tokenPos++;
                 }
                 if (aux.length() <= lenght) {
-                    error.signal("expressão de float mal escrita");
+                    error.signal("Expressão de float mal escrita, (float deve ser no formato ex: .765 ou 211.211).");
+                } else {
+                    floatValue = Float.parseFloat(aux.toString());
                 }
-                floatValue = Float.parseFloat(aux.toString());
                 token = Symbol.FLOATLITERAL;
             }
             //eh um float no formato .4455
         } else if (input[tokenPos] == '.') {
+            aux = new StringBuffer();
             aux = aux.append(input[tokenPos]); //concatena o ponto
             tokenPos++;
-
+            int lenght = aux.length();
             //concatena o resto dos digitos
             while (Character.isDigit(input[tokenPos])) {
                 aux = aux.append(input[tokenPos]);
                 tokenPos++;
             }
-            if (aux.length() <= 0) {
-                error.signal("expressão de float mal escrita");
+            if (aux.length() <= lenght) {
+                error.signal("Expressão de float mal escrita, (float deve ser no formato ex: .765 ou 211.211).");
             } else {
                 floatValue = Float.parseFloat("0" + aux.toString());
             }
@@ -146,7 +141,7 @@ public class Lexer {
                 temp = keywordsTable.get(aux.toString().toLowerCase()); //verifica na key word hash
                 if (temp == null) { //nao eh palavra
                     if (aux.length() > 30) {
-                        error.signal("identificador com mais que 30 digitos");
+                        error.signal("Identificador com mais que 30 digitos");
                     }
                     token = Symbol.IDENT;
                     stringValue = aux.toString();
@@ -172,7 +167,13 @@ public class Lexer {
                         break;
                     case ':':
                         if (input[tokenPos + 1] != '=') {
-                            error.signal("erro lexico");
+                            String msg = ""+input[tokenPos];
+                            tokenPos++;
+                            while(input[tokenPos] != ' '){
+                                msg = msg.concat("" + input[tokenPos]);
+                                tokenPos++;
+                            }
+                            error.signal("Erro lexico, simbolo '" + msg +"' não reconhecido.");
                         } else {
                             tokenPos++;
                             token = Symbol.ASSIGN;
@@ -216,8 +217,7 @@ public class Lexer {
                         token = Symbol.MARKS;
                         break;
                     default:
-                        System.out.println(input[tokenPos]);
-                        error.signal("erro lexico");
+                        error.signal("erro lexico, simbolo '"+ input[tokenPos] + "' não reconhecido.");
                 }
                 tokenPos++;
             }

@@ -1,3 +1,7 @@
+/**
+ *
+ * @author vitor silva
+ */
 package Lexer;
 
 public enum Symbol {
