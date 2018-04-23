@@ -229,7 +229,12 @@ public class Lexer {
         lastTokenPos = tokenPos - 1;
         System.out.println(token.toString());
     }
-
+    
+    public void backToken(){
+        tokenPos = lastTokenPos - 1;
+        nextToken();
+    }
+    
     // return the line number of the last token got with getToken()
     public int getLineNumber() {
         return lineNumber;
