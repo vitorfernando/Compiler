@@ -130,10 +130,10 @@ public class Compiler {
     }
 
     //id_list := id id_tail
-    private ArrayList<String> id_list() {
-        ArrayList<String> idList = new ArrayList<String>();
+    private ArrayList<IdExpr> id_list() {
+        ArrayList<IdExpr> idList = new ArrayList<IdExpr>();
         if (lexer.token == Symbol.IDENT) {
-            idList.add(lexer.getStringValue());
+            idList.add(new IdExpr(lexer.getStringValue()));
             lexer.nextToken();
             if (lexer.token == Symbol.COMMA) {
                 idList.addAll(id_tail());
@@ -144,12 +144,12 @@ public class Compiler {
     }
 
     //id_tail := , id id_tail | empty
-    private ArrayList<String> id_tail() {
-        ArrayList<String> idList = new ArrayList<String>();
+    private ArrayList<IdExpr> id_tail() {
+        ArrayList<IdExpr> idList = new ArrayList<IdExpr>();
         if (lexer.token == Symbol.COMMA) {
             lexer.nextToken();
             if (lexer.token == Symbol.IDENT) {
-                idList.add(lexer.getStringValue());
+                idList.add(new IdExpr(lexer.getStringValue()));
                 lexer.nextToken();
                 if (lexer.token == Symbol.COMMA) {
                     idList.addAll(id_tail());
@@ -351,6 +351,18 @@ public class Compiler {
         if (lexer.token == Symbol.IDENT) {
             return assign_stmt();
         }
+        if (lexer.token == Symbol.READ) {
+            return read_stmt();
+        }
+        if (lexer.token == Symbol.WRITE) {
+            return write_stmt();
+        }
+        if (lexer.token == Symbol.RETURN) {
+            return return_stmt();
+        }
+        if (lexer.token == Symbol.IF) {
+            return ifStmt();
+        }
 
     }
 
@@ -368,10 +380,10 @@ public class Compiler {
 
     //assign_expr -> id := expr
     private AssignExpr assign_expr() {
-        String id;
+        IdExpr id;
         Expr e;
         if (lexer.token == Symbol.IDENT) {
-            id = lexer.getStringValue();
+            id = new IdExpr(lexer.getStringValue());
             lexer.nextToken();
 
             if (lexer.token == Symbol.ASSIGN) {
@@ -384,8 +396,38 @@ public class Compiler {
     }
 
     //expr -> factor expr_tail
-    private expr() {
+    private Expr expr() {
+        Factor factor;
+        CompositeExpr composite_expr = null;
+        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
+            factor = factor();
+            if ((lexer.token == Symbol.PLUS) || (lexer.token == Symbol.MINUS)) {
+                composite_expr = expr_tail();
+                return new CompositeExpr(factor, null, composite_expr);
+            }
 
+        }
+        return null;
+    }
+
+    //expr_tail -> addop factor expr_tail | empty
+    private CompositeExpr expr_tail() {
+        Factor factor;
+        Oper oper;
+        Expr tail;
+        if ((lexer.token == Symbol.PLUS) || (lexer.token == Symbol.MINUS)) {
+            oper = addop();
+            if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                    || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
+                factor = factor();
+                if ((lexer.token == Symbol.PLUS) || (lexer.token == Symbol.MINUS)) {
+                    tail = expr_tail();
+                    return new CompositeExpr(factor, oper, tail);
+                }
+            }
+        }
+        return null;
     }
 
     //postfix_expr -> primary | call_expr
@@ -407,26 +449,64 @@ public class Compiler {
         return null;
     }
 
+    //expr_list -> expr expr_list_tail
+    private CompositeExpr expr_list() {
+        Expr e;
+        CompositeExpr expr_list_tail;
+        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
+            e = expr();
+            if (lexer.token == Symbol.COMMA) {
+                expr_list_tail = expr_list_tail();
+                return new CompositeExpr(e, null, expr_list_tail);
+            }
+        }
+        return null;
+    }
+
+    //expr_list_tail -> , expr expr_list_tail | empty
+    private CompositeExpr expr_list_tail() {
+        Expr e;
+        CompositeExpr expr_list_tail;
+        if (lexer.token == Symbol.COMMA) {
+            lexer.nextToken();
+            if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                    || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
+                e = expr();
+                if (lexer.token == Symbol.COMMA) {
+                    expr_list_tail = expr_list_tail();
+                    return new CompositeExpr(e, null, expr_list_tail);
+                }
+            }
+        }
+        return null;
+    }
+
     //call_expr -> id ( {expr_list} )
     private CallExpr call_expr() {
+        CompositeExpr expr_list = null;
         if (lexer.token == Symbol.IDENT) {
             IdExpr id = id();
             if (lexer.token == Symbol.LPAR) {
                 lexer.nextToken();
-                if () {
-
+                if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                        || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
+                    expr_list = expr_list();
                 }
+                if (lexer.token == Symbol.RPAR) {
+                    lexer.nextToken();
+                }
+                return new CallExpr(id, expr_list);
             }
-            if (lexer.token == Symbol.RPAR) {
-                lexer.nextToken();
-            }
+
         }
+        return null;
     }
 
     //factor -> postfix_expr factor_tail
     private Factor factor() {
         Factor f = null;
-        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
                 || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
             Expr e = postfix_expr();
             if ((lexer.token == Symbol.MULT) || (lexer.token == Symbol.DIV)) {
@@ -474,14 +554,19 @@ public class Compiler {
     private Expr primary() {
         if (lexer.token == Symbol.LPAR) {
             lexer.nextToken();
-            Expr e = expr();
+            Expr e = null;
+            if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                    || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
+                e = expr();
+            }
+
             if (lexer.token == Symbol.RPAR) {
                 lexer.nextToken();
             }
             return e;
         }
         if (lexer.token == Symbol.IDENT) {
-            String id = lexer.getStringValue();
+            IdExpr id = new IdExpr(lexer.getStringValue());
             lexer.nextToken();
             return id();
         }
@@ -498,6 +583,7 @@ public class Compiler {
         return null;
     }
 
+    //id -> IDENTIFIER
     private IdExpr id() {
         String id = null;
         if (lexer.token == Symbol.IDENT) {
@@ -523,60 +609,163 @@ public class Compiler {
         return new Oper(oper);
     }
 
-    //    // VarDecList ::= Variable | Variable ',' VarDecList
-    //    public void varDecList() {
-    //        if (lexer.token != Symbol.IDENT) {
-    //            error.signal("ident nao encontrado");
-    //        }
-    //        lexer.nextToken();
-    //
-    //        if (lexer.token == Symbol.COMMA) {
-    //            lexer.nextToken();
-    //            varDecList();
-    //        }
-    //
-    //    }
-    //
-    //    //AssignStatement ::= Variable '=' Expr ';'
-    //    public void assignStatement() {
-    //        if (lexer.token != Symbol.IDENT) {
-    //            error.signal("ident nao encontrato");
-    //        }
-    //        lexer.nextToken();
-    //
-    //        if (lexer.token != Symbol.ASSIGN) {
-    //            error.signal(" = nao encontrato");
-    //        }
-    //        lexer.nextToken();
-    //
-    ////        expr(); //verifica a expressao
-    //        if (lexer.token != Symbol.SEMICOLON) {
-    //            error.signal("ponto e virgula nao encontrado");
-    //        }
-    //
-    //        lexer.nextToken();
-    //    }
-    // Expr ::= Oper  Expr Expr  | Number | Variable
-    //    public void expr() {
-    //        if (lexer.token == Symbol.NUMBER || lexer.token == Symbol.IDENT) {
-    //            lexer.nextToken();
-    //        } else if (oper(lexer.token)) {
-    //            expr();
-    //            expr();
-    //        } else {
-    //            error.signal("expressao nao valida");
-    //        }
-    //
-    //    }
-    //    //verifica se o token eh um oper + - / *
-    //    public boolean oper(Symbol token) {
-    //        if (token == Symbol.PLUS || token == Symbol.MINUS
-    //                || token == Symbol.MULT || token == Symbol.DIV) {
-    //            lexer.nextToken();
-    //            return true;
-    //        }
-    //        return false;
-    //    }
+    //read_stmt -> READ ( id_list );
+    private ReadStmt read_stmt() {
+        ArrayList<IdExpr> id_list = new ArrayList<IdExpr>();
+
+        if (lexer.token == Symbol.READ) {
+            lexer.nextToken();
+            if (lexer.token == Symbol.LPAR) {
+                lexer.nextToken();
+                if (lexer.token == Symbol.IDENT) {
+                    id_list = id_list();
+                }
+
+                if (lexer.token == Symbol.RPAR) {
+                    lexer.nextToken();
+                }
+                if (lexer.token == Symbol.SEMICOLON) {
+                    lexer.nextToken();
+                }
+                return new ReadStmt(id_list);
+            }
+
+        }
+        return null;
+    }
+
+    //write_stmt -> WRITE ( id_list );
+    private WriteStmt write_stmt() {
+        ArrayList<IdExpr> id_list = new ArrayList<IdExpr>();
+
+        if (lexer.token == Symbol.WRITE) {
+            lexer.nextToken();
+            if (lexer.token == Symbol.LPAR) {
+                lexer.nextToken();
+                if (lexer.token == Symbol.IDENT) {
+                    id_list = id_list();
+                }
+
+                if (lexer.token == Symbol.RPAR) {
+                    lexer.nextToken();
+                }
+                if (lexer.token == Symbol.SEMICOLON) {
+                    lexer.nextToken();
+                }
+                return new WriteStmt(id_list);
+            }
+
+        }
+        return null;
+    }
+
+    //return_stmt -> RETURN expr ;
+    private ReturnStmt return_stmt() {
+        Expr e = null;
+        if (lexer.token == Symbol.RETURN) {
+            lexer.nextToken();
+            if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                    || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
+                e = expr();
+            }
+            if (lexer.token == Symbol.COMMA) {
+                lexer.nextToken();
+            }
+            return new ReturnStmt(e);
+        }
+        return null;
+    }
+
+    //if_stmt -> IF ( cond ) THEN stmt_list else_part ENDIF
+    private IfStmt ifStmt() {
+        if (lexer.token == Symbol.IF) {
+            lexer.nextToken();
+            if (lexer.token == Symbol.LPAR) {
+                lexer.nextToken();
+                if (lexer.token == Symbol.RPAR) {
+                    lexer.nextToken();
+                    if (lexer.token == Symbol.THEN) {
+                        lexer.nextToken();
+
+                        stmt_list();
+
+                        else_part();
+
+                        if (lexer.token == Symbol.ENDIF) {
+                            lexer.nextToken();
+                        }
+                    }
+
+                }
+
+            }
+        }
+    }
+
+    else_part -> ELSE stmt_list | empty cond -> expr compop expr compop -> < | > | =
+for_stmt
+
+    -> FOR( {assign_expr
+    }
+
+    ;
+
+    {cond}; {assign_expr
+    }
+    ) stmt_list ENDFOR //    // VarDecList ::= Variable | Variable ',' VarDecList
+            //    public void varDecList() {
+            //        if (lexer.token != Symbol.IDENT) {
+            //            error.signal("ident nao encontrado");
+            //        }
+            //        lexer.nextToken();
+            //
+            //        if (lexer.token == Symbol.COMMA) {
+            //            lexer.nextToken();
+            //            varDecList();
+            //        }
+            //
+            //    }
+            //
+            //    //AssignStatement ::= Variable '=' Expr ';'
+            //    public void assignStatement() {
+            //        if (lexer.token != Symbol.IDENT) {
+            //            error.signal("ident nao encontrato");
+            //        }
+            //        lexer.nextToken();
+            //
+            //        if (lexer.token != Symbol.ASSIGN) {
+            //            error.signal(" = nao encontrato");
+            //        }
+            //        lexer.nextToken();
+            //
+            ////        expr(); //verifica a expressao
+            //        if (lexer.token != Symbol.SEMICOLON) {
+            //            error.signal("ponto e virgula nao encontrado");
+            //        }
+            //
+            //        lexer.nextToken();
+            //    }
+            // Expr ::= Oper  Expr Expr  | Number | Variable
+            //    public void expr() {
+            //        if (lexer.token == Symbol.NUMBER || lexer.token == Symbol.IDENT) {
+            //            lexer.nextToken();
+            //        } else if (oper(lexer.token)) {
+            //            expr();
+            //            expr();
+            //        } else {
+            //            error.signal("expressao nao valida");
+            //        }
+            //
+            //    }
+            //    //verifica se o token eh um oper + - / *
+            //    public boolean oper(Symbol token) {
+            //        if (token == Symbol.PLUS || token == Symbol.MINUS
+            //                || token == Symbol.MULT || token == Symbol.DIV) {
+            //            lexer.nextToken();
+            //            return true;
+            //        }
+            //        return false;
+            //    }
     private Lexer lexer;
     private CompilerError error;
 

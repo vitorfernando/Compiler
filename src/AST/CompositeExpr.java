@@ -9,19 +9,21 @@ package AST;
  *
  * @author vitor
  */
-public class CallExpr extends Expr {
+public class CompositeExpr extends Expr{
+    private Oper oper;
+    private Expr eleft;
+    private Expr eright;
 
-    private IdExpr id;
-    private CompositeExpr compositeExpr;
-
-    public CallExpr(IdExpr id, CompositeExpr expr_list) {
-        this.id = id;
-        this.compositeExpr = compositeExpr;
+    public CompositeExpr( Expr eleft ,Oper oper, Expr eright) {
+        this.eleft = eleft;
+        this.oper = oper;
+        this.eright = eright;
     }
-
+    
+    
     @Override
     public void genC() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
 }

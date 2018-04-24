@@ -10,10 +10,10 @@ package AST;
  * @author vitor
  */
 public class AssignExpr extends Expr {
-    private String id;
+    private IdExpr id;
     private Expr e;
 
-    public AssignExpr(String id, Expr e) {
+    public AssignExpr(IdExpr id, Expr e) {
         this.id = id;
         this.e = e;
     }
