@@ -3,9 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/vitor/Documents/Compiler/src/AST/ReturnStmt.java</file>
-            <file>file:/home/vitor/Documents/Compiler/src/Compiler.java</file>
-            <file>file:/home/vitor/Documents/Compiler/src/AST/IfStmt.java</file>
+            <file>file:/F:/Compiler/src/AST/FuncDecl.java</file>
+            <file>file:/F:/Compiler/src/AST/Oper.java</file>
+            <file>file:/F:/Compiler/src/AST/IfStmt.java</file>
+            <file>file:/F:/Compiler/src/Compiler.java</file>
+            <file>file:/F:/Compiler/src/Lexer/Symbol.java</file>
         </group>
     </open-files>
 </project-private>

@@ -11,17 +11,12 @@ import java.util.ArrayList;
  *
  * @author vitor
  */
-public class IfStmt extends Stmt {
+public class ElseStmt extends Stmt {
 
-    private CompositeExpr cond;
     private ArrayList<Stmt> stmt_list;
-    private ElseStmt else_part;
 
-    public IfStmt(CompositeExpr cond, ArrayList<Stmt> stmt_list, ElseStmt else_part) {
-        this.cond = cond;
+    public ElseStmt(ArrayList<Stmt> stmt_list) {
         this.stmt_list = stmt_list;
-        this.else_part = else_part;
     }
 
-   
 }

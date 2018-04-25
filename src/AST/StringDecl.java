@@ -11,10 +11,10 @@ package AST;
  */
 public class StringDecl extends Expr{
 
-    private String id;
-    private String str;
+    private IdExpr id;
+    private StrExpr str;
 
-    public StringDecl(String id, String str) {
+    public StringDecl(IdExpr id, StrExpr str) {
         this.id = id;
         this.str = str;
     }

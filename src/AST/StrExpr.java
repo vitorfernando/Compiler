@@ -5,19 +5,15 @@
  */
 package AST;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author vitor
  */
-public class VarDecl extends Expr{
-    private Type type;
-    private ArrayList<IdExpr> idList;
-    
-    public VarDecl(Type type, ArrayList<IdExpr> idList) {
-        this.idList = idList;
-        this.type = type;
+public class StrExpr extends Expr{
+private String str;
+
+    public StrExpr(String str) {
+        this.str = str;
     }
 
     @Override

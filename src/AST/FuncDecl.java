@@ -15,10 +15,10 @@ public class FuncDecl extends Expr {
 
     private Type type;
     private ArrayList<ParamDecl> param_decl_list;
-    private String id;
+    private IdExpr id;
     private FuncBody funcBody;
 
-    public FuncDecl(Type type, String id, ArrayList<ParamDecl> param_decl_list, FuncBody funcBody) {
+    public FuncDecl(Type type, IdExpr id, ArrayList<ParamDecl> param_decl_list, FuncBody funcBody) {
         this.type = type;
         this.param_decl_list = param_decl_list;
         this.id = id;
