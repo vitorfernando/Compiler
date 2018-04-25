@@ -5,6 +5,11 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author vitor
@@ -18,8 +23,12 @@ public class FloatExpr extends Expr {
     }
 
     @Override
-    public void genC() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void genC(FileWriter stream_out) {
+        try {
+            stream_out.write(Float.toString(f));
+        } catch (IOException ex) {
+            Logger.getLogger(StrExpr.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 }

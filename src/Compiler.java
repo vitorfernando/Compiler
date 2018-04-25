@@ -6,6 +6,7 @@
 import AST.*;
 import Lexer.*;
 import Error.*;
+import java.io.FileWriter;
 import java.util.ArrayList;
 
 public class Compiler {
@@ -13,18 +14,17 @@ public class Compiler {
     // para geracao de codigo
     public static final boolean GC = false;
 
-    public void compile(char[] p_input) {
+    public void compile(char[] p_input, FileWriter stream_out) {
         error = new CompilerError(lexer);
         lexer = new Lexer(p_input, error);
         error.setLexer(lexer);
-        //lexer.nextToken();
+        lexer.nextToken();
         Program p = program();
-//        while(lexer.token != Symbol.EOF){
-//            lexer.nextToken();
-//        }
         if (lexer.token != Symbol.EOF) {
             error.signal("nao chegou no fim do arq");
         }
+        p.genC(stream_out);
+
     }
 
     // Program ::= PROGRAM id BEGIN pgm_body END
@@ -55,15 +55,17 @@ public class Compiler {
     //pgm_body := decl func_declarations
     private ProgramBody programBody() {
         Decl decl = null;
-        FuncDecl func_decl = null;
+
+        ArrayList<FuncDecl> func_declarations = null;
         if ((lexer.token == Symbol.STRING) || ((lexer.token == Symbol.FLOAT)
                 || (lexer.token == Symbol.INT))) {
             decl = decl();
-            if (lexer.token == Symbol.FUNCTION) {
-                func_decl = func_decl();
-            }
         }
-        return new ProgramBody(decl, func_decl);
+
+        if (lexer.token == Symbol.FUNCTION) {
+            func_declarations = func_declarations();
+        }
+        return new ProgramBody(decl, func_declarations);
     }
 
     //decl = string_decl_list {decl} | var_decl_list {decl} | empty
@@ -181,7 +183,7 @@ public class Compiler {
         }
         if (lexer.token == Symbol.INT) {
             lexer.nextToken();
-            return new TypeInt();
+            return new IntType();
         }
         return null;
     }
@@ -257,7 +259,7 @@ public class Compiler {
         if ((lexer.token == Symbol.FLOAT) || (lexer.token == Symbol.INT)) {
             Type type = var_type();
             if (lexer.token == Symbol.IDENT) {
-                String id = lexer.getStringValue();
+                IdExpr id = new IdExpr(lexer.getStringValue());
                 lexer.nextToken();
                 return new ParamDecl(id, type);
             }
@@ -284,6 +286,7 @@ public class Compiler {
 //    func_declarations -> func_decl {func_decl_tail}
     private ArrayList<FuncDecl> func_declarations() {
         ArrayList<FuncDecl> funcDecl_list = new ArrayList<FuncDecl>();
+
         if (lexer.token == Symbol.FUNCTION) {
             funcDecl_list.add(func_decl());
             if (lexer.token == Symbol.FUNCTION) {
@@ -307,7 +310,7 @@ public class Compiler {
                 type = any_type();
                 if (lexer.token == Symbol.IDENT) {
                     id = id();
-                    lexer.nextToken();
+
                     if (lexer.token == Symbol.LPAR) {
                         lexer.nextToken();
                         if ((lexer.token == Symbol.FLOAT) || (lexer.token == Symbol.INT)) {
@@ -317,7 +320,13 @@ public class Compiler {
                             lexer.nextToken();
                             if (lexer.token == Symbol.BEGIN) {
                                 lexer.nextToken();
-                                funcBody = func_body();
+                                if (((lexer.token == Symbol.STRING) || ((lexer.token == Symbol.FLOAT)
+                                        || (lexer.token == Symbol.INT)))
+                                        || ((lexer.token == Symbol.IDENT) || (lexer.token == Symbol.READ)
+                                        || (lexer.token == Symbol.WRITE) || (lexer.token == Symbol.RETURN)
+                                        || (lexer.token == Symbol.IF) || (lexer.token == Symbol.FOR))) {
+                                    funcBody = func_body();
+                                }
                                 if (lexer.token == Symbol.END) {
                                     lexer.nextToken();
                                 }
@@ -356,21 +365,34 @@ public class Compiler {
 
     //func_body -> decl stmt_list
     private FuncBody func_body() {
-        Decl decl;
+        Decl decl = null;
         ArrayList<Stmt> stmt_list = new ArrayList<Stmt>();
 
         if ((lexer.token == Symbol.STRING) || ((lexer.token == Symbol.FLOAT)
                 || (lexer.token == Symbol.INT))) {
             decl = decl();
+
+        }
+        if ((lexer.token == Symbol.IDENT) || (lexer.token == Symbol.READ)
+                || (lexer.token == Symbol.WRITE) || (lexer.token == Symbol.RETURN)
+                || (lexer.token == Symbol.IF) || (lexer.token == Symbol.FOR)) {
             stmt_list = stmt_list();
         }
 
-        return null;
+        return new FuncBody(decl, stmt_list);
 
     }
 
-    //stmt -> assign_stmt | read_stmt | write_stmt | return_stmt | if_stmt | for_stmt | call_expr ;
+    //stmt -> assign_stmt | read_stmt | write_stmt | return_stmt | if_stmt | for_stmt | call_stmt ;
     private Stmt stmt() {
+        if (lexer.token == Symbol.IDENT) {
+            lexer.nextToken();
+            if (lexer.token == Symbol.LPAR) {
+                lexer.backToken();
+                return call_stmt();
+            }
+            lexer.backToken();
+        }
         if (lexer.token == Symbol.IDENT) {
             return assign_stmt();
         }
@@ -442,7 +464,6 @@ public class Compiler {
         Expr e;
         if (lexer.token == Symbol.IDENT) {
             id = id();
-            lexer.nextToken();
 
             if (lexer.token == Symbol.ASSIGN) {
                 lexer.nextToken();
@@ -457,13 +478,15 @@ public class Compiler {
     private Expr expr() {
         Factor factor;
         CompositeExpr composite_expr = null;
+        
         if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
                 || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
             factor = factor();
             if ((lexer.token == Symbol.PLUS) || (lexer.token == Symbol.MINUS)) {
                 composite_expr = expr_tail();
-                return new CompositeExpr(factor, null, composite_expr);
+                
             }
+            return new CompositeExpr(factor, null, composite_expr, false);
 
         }
         return null;
@@ -481,7 +504,7 @@ public class Compiler {
                 factor = factor();
                 if ((lexer.token == Symbol.PLUS) || (lexer.token == Symbol.MINUS)) {
                     tail = expr_tail();
-                    return new CompositeExpr(factor, oper, tail);
+                    return new CompositeExpr(factor, oper, tail, true);
                 }
             }
         }
@@ -516,7 +539,7 @@ public class Compiler {
             e = expr();
             if (lexer.token == Symbol.COMMA) {
                 expr_list_tail = expr_list_tail();
-                return new CompositeExpr(e, null, expr_list_tail);
+                return new CompositeExpr(e, null, expr_list_tail, false);
             }
         }
         return null;
@@ -533,8 +556,19 @@ public class Compiler {
                 e = expr();
                 if (lexer.token == Symbol.COMMA) {
                     expr_list_tail = expr_list_tail();
-                    return new CompositeExpr(e, null, expr_list_tail);
+                    return new CompositeExpr(e, null, expr_list_tail, false);
                 }
+            }
+        }
+        return null;
+    }
+
+    private CallStmt call_stmt() {
+        if (lexer.token == Symbol.IDENT) {
+            lexer.nextToken();
+            if (lexer.token == Symbol.LPAR) {
+                lexer.backToken();
+                return new CallStmt(call_expr());
             }
         }
         return null;
@@ -623,9 +657,8 @@ public class Compiler {
             return e;
         }
         if (lexer.token == Symbol.IDENT) {
-            IdExpr id = id();
-            lexer.nextToken();
-            return id;
+            
+            return id();
         }
         if (lexer.token == Symbol.INTLITERAL) {
             IntExpr i = new IntExpr(lexer.getNumberValue());
@@ -741,7 +774,7 @@ public class Compiler {
             lexer.nextToken();
             if (lexer.token == Symbol.LPAR) {
                 lexer.nextToken();
-                if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
                         || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
                     cond = cond();
                     if (lexer.token == Symbol.RPAR) {
@@ -837,7 +870,7 @@ public class Compiler {
                 }
             }
         }
-        return new CompositeExpr(le, oper, re);
+        return new CompositeExpr(le, oper, re, false);
     }
     //compop -> < | > | =
 
@@ -930,5 +963,4 @@ public class Compiler {
     //    }
     private Lexer lexer;
     private CompilerError error;
-
 }

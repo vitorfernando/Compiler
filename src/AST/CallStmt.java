@@ -14,21 +14,21 @@ import java.util.logging.Logger;
  *
  * @author vitor
  */
-public class IdExpr extends Expr {
+public class CallStmt extends Stmt{
+    private CallExpr call_expr;
 
-    private String id;
-
-    public IdExpr(String id) {
-        this.id = id;
+    public CallStmt(CallExpr call_expr) {
+        this.call_expr = call_expr;
     }
-
+    
     @Override
-    public void genC(FileWriter stream_out) {
+    public void genC(FileWriter stream_out){
+        call_expr.genC(stream_out);
         try {
-            stream_out.write(id);
+            stream_out.write(";");
         } catch (IOException ex) {
-            Logger.getLogger(IdExpr.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CallStmt.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
 }

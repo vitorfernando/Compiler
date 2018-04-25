@@ -5,23 +5,35 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author vitor
  */
 public class ParamDecl extends Expr{
-    private String id;
+    private IdExpr id;
     Type type;
 
-    public ParamDecl(String id, Type type) {
+    public ParamDecl(IdExpr id, Type type) {
         this.id = id;
         this.type = type;
     }
     
     
     @Override
-    public void genC() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void genC(FileWriter stream_out) {
+        type.genC(stream_out);
+        try {
+            stream_out.write(" ");
+        } catch (IOException ex) {
+            Logger.getLogger(ParamDecl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        id.genC(stream_out);
+        
     }
     
 }

@@ -5,11 +5,17 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author vitor
  */
 public class AssignExpr extends Expr {
+
     private IdExpr id;
     private Expr e;
 
@@ -17,10 +23,18 @@ public class AssignExpr extends Expr {
         this.id = id;
         this.e = e;
     }
-    
+
     @Override
-    public void genC() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void genC(FileWriter stream_out) {
+        id.genC(stream_out);
+        try {
+            stream_out.write(" = ");
+        } catch (IOException ex) {
+            Logger.getLogger(AssignExpr.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (e != null) {
+            e.genC(stream_out);
+        }
     }
-    
+
 }

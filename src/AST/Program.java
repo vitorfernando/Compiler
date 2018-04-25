@@ -5,11 +5,17 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author vitor
  */
 public class Program {
+
     private String id;
     private ProgramBody pgm_body;
 
@@ -17,5 +23,17 @@ public class Program {
         this.id = id;
         this.pgm_body = pgm_body;
     }
-    
+
+    public void genC(FileWriter stream_out) {
+        try {
+            stream_out.write("#include<stdio.h>\n");
+            stream_out.write("#include<string.h>\n");
+            stream_out.write("#include<stdlib.h>\n");
+            pgm_body.genC(stream_out);
+        } catch (IOException ex) {
+            Logger.getLogger(Program.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
 }

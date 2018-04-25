@@ -5,7 +5,11 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -26,8 +30,35 @@ public class FuncDecl extends Expr {
     }
 
     @Override
-    public void genC() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void genC(FileWriter stream_out) {
+        type.genC(stream_out);
+        try {
+            stream_out.write(" ");
+            id.genC(stream_out);
+            stream_out.write("(");
+            if (param_decl_list != null) {
+                if (param_decl_list.size() > 1) {
+                    param_decl_list.get(0).genC(stream_out);
+                    for(int i = 1; i< param_decl_list.size(); i++){
+                        stream_out.write(", ");
+                        param_decl_list.get(i).genC(stream_out);
+                    }
+                } else {
+                    for (ParamDecl paramDecl : param_decl_list) {
+                        paramDecl.genC(stream_out);
+                    }
+                }
+
+            }
+            stream_out.write("){\n");
+            if (funcBody != null) {
+                funcBody.genC(stream_out);
+            }
+            stream_out.write("};\n");
+        } catch (IOException ex) {
+            Logger.getLogger(FuncDecl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
 }

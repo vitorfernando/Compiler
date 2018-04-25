@@ -5,10 +5,12 @@
  */
 package AST;
 
+import java.io.FileWriter;
+
 /**
  *
  * @author vitor
  */
 abstract public class Expr {
-    abstract public void genC();
+    abstract public void genC(FileWriter stream_out);
 }

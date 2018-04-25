@@ -5,15 +5,18 @@
  */
 package AST;
 
+import java.io.FileWriter;
+
 /**
  *
  * @author vitor
  */
-public class Factor extends Expr{
+public class Factor extends Expr {
+
     private Oper oper;
     Expr e;
     Factor f;
-
+    
     public Factor(Oper oper, Expr e, Factor f) {
         this.oper = oper;
         this.e = e;
@@ -21,8 +24,16 @@ public class Factor extends Expr{
     }
     
     @Override
-    public void genC() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void genC(FileWriter stream_out) {
+        if (e != null) {
+            e.genC(stream_out);
+        }
+        if(oper != null){
+            oper.genC(stream_out);
+        }
+        if(f != null){
+            f.genC(stream_out);
+        }
     }
     
 }

@@ -59,6 +59,8 @@ public class Lexer {
         }
         //chegou no final do arq
         if (input[tokenPos] == '\0') {
+            lastToken = token;
+            lastTokenPos = tokenPos;
             token = Symbol.EOF;
             return;
         }
@@ -90,6 +92,8 @@ public class Lexer {
                     if (numberValue > MaxValueInteger) {
                         error.signal("estourou o numero int");
                     }
+                    lastToken = token;
+                    lastTokenPos = tokenPos;
                     token = Symbol.INTLITERAL;
                 }
             } else {//é um float 676767.67678
@@ -106,6 +110,8 @@ public class Lexer {
                 } else {
                     floatValue = Float.parseFloat(aux.toString());
                 }
+                lastToken = token;
+                lastTokenPos = tokenPos;
                 token = Symbol.FLOATLITERAL;
             }
             //eh um float no formato .4455
@@ -124,6 +130,8 @@ public class Lexer {
             } else {
                 floatValue = Float.parseFloat("0" + aux.toString());
             }
+            lastToken = token;
+            lastTokenPos = tokenPos;
             token = Symbol.FLOATLITERAL;
         } else {     //nao é um digito
             while (Character.isLetter(input[tokenPos])) {
@@ -143,58 +151,87 @@ public class Lexer {
                     if (aux.length() > 30) {
                         error.signal("Identificador com mais que 30 digitos");
                     }
+                    lastToken = token;
+                    lastTokenPos = tokenPos;
                     token = Symbol.IDENT;
+                    lastStringValue = stringValue;
                     stringValue = aux.toString();
                 } else {
+                    lastToken = token;
+//                    lastTokenPos = tokenPos;
                     token = temp;
                 }
             } else {
                 switch (input[tokenPos]) {
                     case '+':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.PLUS;
                         break;
                     case '-':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.MINUS;
                         break;
                     case '/':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.DIV;
                         break;
                     case '*':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.MULT;
                         break;
                     case '=':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.EQUAL;
                         break;
                     case ':':
                         if (input[tokenPos + 1] != '=') {
-                            String msg = ""+input[tokenPos];
+                            String msg = "" + input[tokenPos];
                             tokenPos++;
-                            while(input[tokenPos] != ' '){
+                            while (input[tokenPos] != ' ') {
                                 msg = msg.concat("" + input[tokenPos]);
                                 tokenPos++;
                             }
-                            error.signal("Erro lexico, simbolo '" + msg +"' não reconhecido.");
+                            error.signal("Erro lexico, simbolo '" + msg + "' não reconhecido.");
                         } else {
-                            tokenPos++;
+                            lastTokenPos = tokenPos;
+                            tokenPos= tokenPos + 2;
+                            lastToken = token;                           
                             token = Symbol.ASSIGN;
                         }
                         break;
                     case '<':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.LT;
                         break;
                     case '>':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.GT;
                         break;
                     case '(':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.LPAR;
                         break;
                     case ')':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.RPAR;
                         break;
                     case ',':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.COMMA;
                         break;
                     case ';':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.SEMICOLON;
                         break;
                     case '"':
@@ -207,17 +244,23 @@ public class Lexer {
                         }
 
                         if (str.length() > 0) {
+                            lastStringValue = stringValue;
                             stringValue = str.toString();
                         } else {
+                            lastStringValue = stringValue;
                             stringValue = "";
                         }
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.STRINGLITERAL;
                         break;
                     case '\'':
+                        lastToken = token;
+                        lastTokenPos = tokenPos;
                         token = Symbol.MARKS;
                         break;
                     default:
-                        error.signal("erro lexico, simbolo '"+ input[tokenPos] + "' não reconhecido.");
+                        error.signal("erro lexico, simbolo '" + input[tokenPos] + "' não reconhecido.");
                 }
                 tokenPos++;
             }
@@ -226,15 +269,14 @@ public class Lexer {
 //        if (DEBUGLEXER) {
 //            System.out.println(token.toString());
 //        }
-        lastTokenPos = tokenPos - 1;
         System.out.println(token.toString());
     }
-    
-    public void backToken(){
-        tokenPos = lastTokenPos - 1;
-        nextToken();
+
+    public void backToken() {
+        token = lastToken;
+        tokenPos = lastTokenPos;
     }
-    
+
     // return the line number of the last token got with getToken()
     public int getLineNumber() {
         return lineNumber;
@@ -281,7 +323,9 @@ public class Lexer {
     }
     // current token
     public Symbol token;
+    public Symbol lastToken;
     private String stringValue;
+    private String lastStringValue;
     private int numberValue;
     private float floatValue;
 

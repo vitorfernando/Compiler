@@ -5,6 +5,8 @@
  */
 package AST;
 
+import java.io.FileWriter;
+
 /**
  *
  * @author vitor
@@ -18,7 +20,7 @@ public class IntExpr extends Expr {
     }
 
     @Override
-    public void genC() {
+    public void genC(FileWriter stream_out) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

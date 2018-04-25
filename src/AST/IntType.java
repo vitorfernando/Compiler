@@ -14,21 +14,13 @@ import java.util.logging.Logger;
  *
  * @author vitor
  */
-public class IdExpr extends Expr {
-
-    private String id;
-
-    public IdExpr(String id) {
-        this.id = id;
-    }
-
+public class IntType extends Type{
     @Override
-    public void genC(FileWriter stream_out) {
+    public void genC(FileWriter stream_out){
         try {
-            stream_out.write(id);
+            stream_out.write("int");
         } catch (IOException ex) {
-            Logger.getLogger(IdExpr.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FloatType.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 }

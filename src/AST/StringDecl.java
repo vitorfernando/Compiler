@@ -5,11 +5,16 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author vitor
  */
-public class StringDecl extends Expr{
+public class StringDecl extends Expr {
 
     private IdExpr id;
     private StrExpr str;
@@ -20,7 +25,23 @@ public class StringDecl extends Expr{
     }
 
     @Override
-    public void genC() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void genC(FileWriter stream_out) {
+        try {
+            stream_out.write("char ");
+        } catch (IOException ex) {
+            Logger.getLogger(StringDecl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        id.genC(stream_out);
+        try {
+            stream_out.write("[] = ");
+        } catch (IOException ex) {
+            Logger.getLogger(StringDecl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        str.genC(stream_out);
+        try {
+            stream_out.write(";\n");
+        } catch (IOException ex) {
+            Logger.getLogger(StringDecl.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

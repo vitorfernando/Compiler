@@ -5,7 +5,11 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -23,5 +27,26 @@ public class IfStmt extends Stmt {
         this.else_part = else_part;
     }
 
-   
+    @Override
+    public void genC(FileWriter stream_out) {
+        try {
+            stream_out.write("if(");
+            if (cond != null) {
+                cond.genC(stream_out);
+            }
+            stream_out.write("){\n");
+            if (stmt_list != null) {
+                for (Stmt stmt : stmt_list) {
+                    stmt.genC(stream_out);
+                }
+            }
+            stream_out.write("}\n");
+            if (else_part != null) {
+                else_part.genC(stream_out);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(IfStmt.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 }

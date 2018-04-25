@@ -6,22 +6,30 @@
 package AST;
 
 import Lexer.Symbol;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author vitor
  */
-public class Oper extends Expr{
-    private Symbol oper;
+public class Oper extends Expr {
 
+    private Symbol oper;
+    
     public Oper(Symbol oper) {
         this.oper = oper;
     }
     
-    
     @Override
-    public void genC() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void genC(FileWriter stream_out) {
+        try {
+            stream_out.write(oper.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(Oper.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }

@@ -1,3 +1,4 @@
+
 /**
  *
  * @author vitor silva
@@ -9,9 +10,10 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         File file;
         FileReader stream;
+        FileWriter stream_out;
         int numChRead;
 
         if (args.length != 1) {
@@ -24,6 +26,7 @@ public class Main {
             }
             try {
                 stream = new FileReader(file);
+                stream_out = new FileWriter(stripExtension(file.getName()) + ".c");
             } catch (FileNotFoundException e) {
                 System.out.println("Something wrong: file does not exist anymore");
                 throw new RuntimeException();
@@ -52,8 +55,30 @@ public class Main {
 
             Compiler compiler = new Compiler();
 
-            compiler.compile(input);
+            compiler.compile(input, stream_out);
+
+            stream_out.close();
+
         }
+    }
+
+    static String stripExtension(String str) {
+        // Handle null case specially.
+
+        if (str == null) {
+            return null;
+        }
+
+        // Get position of last '.'.
+        int pos = str.lastIndexOf(".");
+
+        // If there wasn't any '.' just return the string as is.
+        if (pos == -1) {
+            return str;
+        }
+
+        // Otherwise return the string, up to the dot.
+        return str.substring(0, pos);
     }
 
 }

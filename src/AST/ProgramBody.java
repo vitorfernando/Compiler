@@ -5,6 +5,9 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.util.ArrayList;
+
 /**
  *
  * @author vitor
@@ -12,11 +15,23 @@ package AST;
 public class ProgramBody {
 
     private Decl decl;
-    private FuncDecl func_decl;
+    private ArrayList<FuncDecl> func_declarations;
 
-    public ProgramBody(Decl decl, FuncDecl func_decl) {
+    public ProgramBody(Decl decl, ArrayList<FuncDecl> func_decl) {
         this.decl = decl;
-        this.func_decl = func_decl;
+        this.func_declarations = func_decl;
+    }
+
+    public void genC(FileWriter stream_out) {
+        if (decl != null) {
+            decl.genC(stream_out);
+        }
+        if (func_declarations != null) {
+            for (FuncDecl funcDecl : func_declarations) {
+                funcDecl.genC(stream_out);
+            }
+
+        }
     }
 
 }

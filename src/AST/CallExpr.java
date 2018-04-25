@@ -5,23 +5,35 @@
  */
 package AST;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author vitor
  */
 public class CallExpr extends Expr {
-
+    
     private IdExpr id;
     private CompositeExpr compositeExpr;
-
+    
     public CallExpr(IdExpr id, CompositeExpr expr_list) {
         this.id = id;
-        this.compositeExpr = compositeExpr;
+        this.compositeExpr = expr_list;
     }
-
+    
     @Override
-    public void genC() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void genC(FileWriter stream_out) {
+        id.genC(stream_out);
+        try {
+            stream_out.write("(");
+            compositeExpr.genC(stream_out);
+            stream_out.write(")");
+        } catch (IOException ex) {
+            Logger.getLogger(CallExpr.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
-
+    
 }
