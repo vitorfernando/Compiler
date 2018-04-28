@@ -1,0 +1,10 @@
+PROGRAM prog1 BEGIN 	
+	STRING a:= "Hello World!";
+	int b c;
+	FUNCTION VOID b() 
+	BEGIN
+		a(b); 
+		READ(a);
+	END
+
+END

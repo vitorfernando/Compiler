@@ -8,9 +8,10 @@ import Lexer.*;
 import Error.*;
 import java.io.FileWriter;
 import java.util.ArrayList;
-
+import java.util.Hashtable;
+ 
 public class Compiler {
-
+    public static Hashtable<String, Type> idTable = new Hashtable<String, Type>();
     // para geracao de codigo
     public static final boolean GC = false;
 
@@ -23,8 +24,12 @@ public class Compiler {
         if (lexer.token != Symbol.EOF) {
             error.signal("nao chegou no fim do arq");
         }
-        p.genC(stream_out);
+        p.genC(stream_out,idTable);
 
+    }
+
+    public static Hashtable<String, Type> getIdTable() {
+        return idTable;
     }
 
     // Program ::= PROGRAM id BEGIN pgm_body END
@@ -139,6 +144,10 @@ public class Compiler {
                     error.signal("Faltou o ;");
                 }
             }
+            for (IdExpr idExpr : idList) {
+                idTable.put(idExpr.getId(), type);
+            }
+            
             return new VarDecl(type, idList);
         }
         return null;
@@ -236,6 +245,7 @@ public class Compiler {
             } else {
                 error.signal("Faltou um identificador válido");
             }
+            idTable.put(id.getId(),new TypeString());
             return new StringDecl(id, str);
         }
         return null;
@@ -478,13 +488,13 @@ public class Compiler {
     private Expr expr() {
         Factor factor;
         CompositeExpr composite_expr = null;
-        
-        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+
+        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
                 || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
             factor = factor();
             if ((lexer.token == Symbol.PLUS) || (lexer.token == Symbol.MINUS)) {
                 composite_expr = expr_tail();
-                
+
             }
             return new CompositeExpr(factor, null, composite_expr, false);
 
@@ -533,14 +543,14 @@ public class Compiler {
     //expr_list -> expr expr_list_tail
     private CompositeExpr expr_list() {
         Expr e;
-        CompositeExpr expr_list_tail;
-        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+        CompositeExpr expr_list_tail = null;
+        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
                 || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
             e = expr();
             if (lexer.token == Symbol.COMMA) {
                 expr_list_tail = expr_list_tail();
-                return new CompositeExpr(e, null, expr_list_tail, false);
             }
+            return new CompositeExpr(e, null, expr_list_tail, false);
         }
         return null;
     }
@@ -568,8 +578,13 @@ public class Compiler {
             lexer.nextToken();
             if (lexer.token == Symbol.LPAR) {
                 lexer.backToken();
-                return new CallStmt(call_expr());
+                CallStmt stmt = new CallStmt(call_expr());
+                if (lexer.token == Symbol.SEMICOLON) {
+                    lexer.nextToken();
+                }
+                return stmt;
             }
+            lexer.backToken();
         }
         return null;
     }
@@ -583,7 +598,7 @@ public class Compiler {
             id = id();
             if (lexer.token == Symbol.LPAR) {
                 lexer.nextToken();
-                if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+                if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
                         || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
                     expr_list = expr_list();
                 }
@@ -598,7 +613,7 @@ public class Compiler {
     //factor -> postfix_expr factor_tail
     private Factor factor() {
         Factor f = null;
-        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
+        if ((lexer.token == Symbol.LPAR) || (lexer.token == Symbol.IDENT)
                 || (lexer.token == Symbol.INTLITERAL) || (lexer.token == Symbol.FLOATLITERAL)) {
             Expr e = postfix_expr();
             if ((lexer.token == Symbol.MULT) || (lexer.token == Symbol.DIV)) {
@@ -657,7 +672,7 @@ public class Compiler {
             return e;
         }
         if (lexer.token == Symbol.IDENT) {
-            
+
             return id();
         }
         if (lexer.token == Symbol.INTLITERAL) {

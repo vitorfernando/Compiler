@@ -1,8 +1,9 @@
-﻿PROGRAM prog1 	
+PROGRAM prog1 BEGIN 	
 	STRING a:= "Hello World!";
 	FUNCTION VOID b() 
-	BEGIN 
-		WRITE(a);
+	BEGIN
+		a(b); 
+		READ(a);;
 	END
-BEGIN 
+
 END

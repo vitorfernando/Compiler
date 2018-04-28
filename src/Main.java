@@ -20,8 +20,12 @@ public class Main {
             System.out.println("Use only one parameter, the file to be compiled");
         } else {
             file = new File(args[0]);
-            if (!file.exists() || !file.canRead()) {
-                System.out.println("Either the file " + args[0] + " does not exist or it cannot be read");
+            if (!file.canRead()) {
+                System.out.println("The file " + args[0] + " cannot be read");
+                throw new RuntimeException();
+            }
+            if (!file.exists()) {
+                System.out.println("The file " + args[0] + " cannot be exist");
                 throw new RuntimeException();
             }
             try {
@@ -54,9 +58,7 @@ public class Main {
             }
 
             Compiler compiler = new Compiler();
-
             compiler.compile(input, stream_out);
-
             stream_out.close();
 
         }

@@ -1,0 +1,3 @@
+PROGRAM erro1 begin
+	float aaa := .;
+end

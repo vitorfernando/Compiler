@@ -1,0 +1,10 @@
+PROGRAM prog1 BEGIN 	
+	STRING a:= "Hello World!";
+	FUNCTION VOID b() 
+	BEGIN
+		a(b); 
+		READ(a);
+if (a < b) then a:= b endif
+	END
+
+END
